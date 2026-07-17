@@ -1,0 +1,24 @@
+﻿import { Router } from 'express';
+import { body } from 'express-validator';
+import * as auth from '../controllers/authController.js';
+import * as services from '../controllers/serviceController.js';
+import * as tokens from '../controllers/tokenController.js';
+import * as appointments from '../controllers/appointmentController.js';
+import * as notifications from '../controllers/notificationController.js';
+import * as feedback from '../controllers/feedbackController.js';
+import * as analytics from '../controllers/analyticsController.js';
+import { protect, adminOnly } from '../middleware/authMiddleware.js';
+import { validateRequest } from '../middleware/validateRequest.js';
+
+const router = Router();
+const admin = [protect, adminOnly];
+router.post('/auth/register', [body('name').trim().notEmpty().withMessage('Full name is required.'), body('email').isEmail().withMessage('Enter a valid college email.'), body('studentId').trim().notEmpty().withMessage('Student ID is required.'), body('password').isLength({ min: 8 }).withMessage('Password must have at least 8 characters.'), validateRequest], auth.register);
+router.post('/auth/login', [body('email').isEmail(), body('password').notEmpty(), validateRequest], auth.login);
+router.get('/auth/me', protect, auth.me); router.put('/auth/profile', protect, auth.updateProfile);
+router.get('/services', services.listServices); router.get('/services/:id', services.getService); router.post('/services', admin, services.createService); router.put('/services/:id', admin, services.updateService); router.delete('/services/:id', admin, services.deleteService); router.patch('/services/:id/queue-status', admin, services.queueStatus);
+router.post('/tokens', protect, tokens.createToken); router.get('/tokens/my', protect, tokens.myTokens); router.get('/tokens/service/:serviceId', admin, tokens.serviceTokens); router.post('/tokens/service/:serviceId/call-next', admin, tokens.callNext); router.get('/tokens/:id', protect, tokens.getToken); router.patch('/tokens/:id/cancel', protect, tokens.cancelToken); router.patch('/tokens/:id/status', admin, tokens.updateTokenStatus);
+router.post('/appointments', protect, appointments.createAppointment); router.get('/appointments/my', protect, appointments.myAppointments); router.get('/appointments/admin', admin, appointments.allAppointments); router.patch('/appointments/:id/cancel', protect, appointments.cancelAppointment); router.patch('/appointments/:id/reschedule', protect, appointments.rescheduleAppointment); router.patch('/appointments/:id/status', admin, appointments.updateAppointmentStatus);
+router.get('/notifications', protect, notifications.listNotifications); router.patch('/notifications/read-all', protect, notifications.readAll); router.patch('/notifications/:id/read', protect, notifications.readNotification);
+router.post('/feedback', protect, feedback.createFeedback); router.get('/feedback/my', protect, feedback.myFeedback); router.get('/feedback/service/:serviceId', feedback.serviceFeedback); router.get('/feedback/admin', admin, feedback.allFeedback);
+router.get('/analytics/overview', admin, analytics.overview); router.get('/analytics/queues', admin, analytics.queueAnalytics); router.get('/analytics/appointments', admin, analytics.appointmentAnalytics); router.get('/analytics/feedback', admin, analytics.feedbackAnalytics);
+export default router;
