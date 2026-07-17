@@ -5,4 +5,4 @@ import { ensureDefaultServices } from './seed/bootstrapServices.js';
 const port = process.env.PORT || 5000;
 await connectDatabase();
 await ensureDefaultServices();
-app.listen(port, () => process.stdout.write(`CampusFlow API running on port ${port}\n`));
+app.listen(port, '0.0.0.0', () => process.stdout.write(`CampusFlow running on port ${port}\n`));
